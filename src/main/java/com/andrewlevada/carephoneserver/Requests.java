@@ -34,7 +34,7 @@ public class Requests {
         return array;
     }
 
-    @RequestMapping(method = RequestMethod.PUT, path = "/whitelist/{userToken}/{phoneNumber}/{label}")
+    @RequestMapping(method = RequestMethod.PUT, path = "/whitelist/{userToken}/{phone}/{label}")
     public void putWhitelist(@PathVariable String userToken, @PathVariable String phone, @PathVariable String label) {
         String uid = Toolbox.getUidFromFirebaseAuthToken(userToken);
         if (uid != null) database.addWhitelistRecord(uid, new PhoneNumber(phone, label));
