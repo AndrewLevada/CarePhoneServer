@@ -15,4 +15,9 @@ public class Database {
     public List<PhoneNumber> getWhitelist(String uid) {
         return jdbcTemplate.query("select phone_number, label from WhitelistRecords where uid=?", new Mapper(), uid);
     }
+
+    public void addWhitelistRecord(String uid, PhoneNumber phoneNumber) {
+        jdbcTemplate.update("insert into WhitelistRecords (uid, phone_number, label) values (?, ?, ?)",
+                uid, phoneNumber.getPhone(), phoneNumber.getLabel());
+    }
 }
