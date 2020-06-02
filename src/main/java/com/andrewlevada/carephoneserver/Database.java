@@ -13,11 +13,11 @@ public class Database {
     private JdbcTemplate jdbcTemplate;
 
     public List<PhoneNumber> getWhitelist(String uid) {
-        return jdbcTemplate.query("select phone_number, label from WhitelistRecords where uid=?", new Mapper(), uid);
+        return jdbcTemplate.query("SELECT phone_number, label FROM public.\"WhitelistRecords\" WHERE uid=?", new Mapper(), uid);
     }
 
     public void addWhitelistRecord(String uid, PhoneNumber phoneNumber) {
-        jdbcTemplate.update("insert into WhitelistRecords (uid, phone_number, label) values (?, ?, ?)",
+        jdbcTemplate.update("INSERT INTO public.\"WhitelistRecords\" (uid, phone_number, label) VALUES (?, ?, ?)",
                 uid, phoneNumber.getPhone(), phoneNumber.getLabel());
     }
 }
