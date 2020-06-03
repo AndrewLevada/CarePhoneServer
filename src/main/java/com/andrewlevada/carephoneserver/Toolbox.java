@@ -6,10 +6,10 @@ import com.google.firebase.auth.FirebaseToken;
 import org.json.JSONObject;
 
 public class Toolbox {
-    public static String getUidFromFirebaseAuthToken(JSONObject body) {
+    public static String getUidFromFirebaseAuthToken(String userToken) {
         FirebaseToken decodedToken;
         try {
-            decodedToken = FirebaseAuth.getInstance().verifyIdToken(body.getString("user_token"));
+            decodedToken = FirebaseAuth.getInstance().verifyIdToken(userToken);
         } catch (FirebaseAuthException e) {
             return null;
         }

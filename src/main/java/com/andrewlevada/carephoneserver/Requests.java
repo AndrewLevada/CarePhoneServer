@@ -18,32 +18,28 @@ public class Requests {
     @Autowired
     private Database database;
 
-    @RequestMapping(method = RequestMethod.GET, path = "/whitelist", consumes = "application/json")
-    public List<PhoneNumber> getWhitelist(@RequestBody String bodyString) {
-        JSONObject body = new JSONObject(bodyString);
-        String uid = Toolbox.getUidFromFirebaseAuthToken(body);
+    @RequestMapping(method = RequestMethod.GET, path = "/whitelist")
+    public List<PhoneNumber> getWhitelist(@RequestParam String userToken) {
+        String uid = Toolbox.getUidFromFirebaseAuthToken(userToken);
         if (uid != null) return database.getWhitelist(uid);
         else return null;
     }
 
-    @RequestMapping(method = RequestMethod.PUT, path = "/whitelist", consumes = "application/json")
-    public void putWhitelist(@RequestBody String bodyString) {
-        JSONObject body = new JSONObject(bodyString);
-        String uid = Toolbox.getUidFromFirebaseAuthToken(body);
-        if (uid != null) database.addWhitelistRecord(uid, new PhoneNumber(body.getString("phone_number"), body.getString("label")));
+    @RequestMapping(method = RequestMethod.PUT, path = "/whitelist")
+    public void putWhitelist(@RequestParam String userToken, @RequestParam String phone, @RequestParam String label) {
+        String uid = Toolbox.getUidFromFirebaseAuthToken(userToken);
+        if (uid != null) database.addWhitelistRecord(uid, new PhoneNumber(phone, label));
     }
 
-    @RequestMapping(method = RequestMethod.POST, path = "/whitelist", consumes = "application/json")
-    public void postWhitelist(@RequestBody String bodyString) {
-        JSONObject body = new JSONObject(bodyString);
-        String uid = Toolbox.getUidFromFirebaseAuthToken(body);
-        if (uid != null) database.editWhitelistRecord(uid, body.getString("prev_phone"), new PhoneNumber(body.getString("phone_number"), body.getString("label")));
+    @RequestMapping(method = RequestMethod.POST, path = "/whitelist")
+    public void postWhitelist(@RequestParam String userToken, @RequestParam String prevPhone, @RequestParam String phone, @RequestParam String label) {
+        String uid = Toolbox.getUidFromFirebaseAuthToken(userToken);
+        if (uid != null) database.editWhitelistRecord(uid, prevPhone, new PhoneNumber(phone, label));
     }
 
-    @RequestMapping(method = RequestMethod.DELETE, path = "/whitelist", consumes = "application/json")
-    public void deleteWhitelist(@RequestBody String bodyString) {
-        JSONObject body = new JSONObject(bodyString);
-        String uid = Toolbox.getUidFromFirebaseAuthToken(body);
-        if (uid != null) database.deleteWhitelistRecord(uid, body.getString("phone_number"));
+    @RequestMapping(method = RequestMethod.DELETE, path = "/whitelist")
+    public void deleteWhitelist(@RequestParam String userToken, @RequestParam String phone) {
+        String uid = Toolbox.getUidFromFirebaseAuthToken(userToken);
+        if (uid != null) database.deleteWhitelistRecord(uid, phone);
     }
 }
