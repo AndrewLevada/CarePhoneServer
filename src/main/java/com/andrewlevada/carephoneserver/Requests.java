@@ -18,9 +18,10 @@ public class Requests {
     @Autowired
     private Database database;
 
-    @RequestMapping(method = RequestMethod.GET, path = "/whitelist", consumes = "application/json")
-    public String getWhitelist(@RequestBody JSONObject body) {
-        return body.getString("userToken");
+    @RequestMapping(method = RequestMethod.POST, path = "/whitelist", consumes = "application/json")
+    public String getWhitelist(@RequestBody String bodyString) {
+            JSONObject body = new JSONObject(bodyString);
+            return body.getString("userToken");
         // String uid = Toolbox.getUidFromFirebaseAuthToken(body.getString("userToken"));
         // if (uid != null) return database.getWhitelist(uid);
         // else return null;
