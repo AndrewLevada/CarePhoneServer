@@ -97,28 +97,43 @@ public class Database {
 
     // Linking
 
-    public void addLinkRequest(String uid) {
+    public String addLinkRequest(String uid) {
+        List<LinkRequest> list = jdbcTemplate.query("SELECT * FROM public.\"LinkRequests\" WHERE uid = ?",
+                (resultSet, i) -> new LinkRequest(resultSet.getString("uid"), resultSet.getString("code"), resultSet.getTimestamp("end_timestamp")), uid);
+
+        if (list.size() != 0) {
+            if (list.get(0).timestamp.after(new Date(System.currentTimeMillis()))) return list.get(0).code;
+            else {
+                deleteLinkRequest(uid);
+                return addLinkRequest(uid);
+            }
+        }
+
         Timestamp timestamp = new Timestamp(System.currentTimeMillis() + 1000 * 60 * 10);
+        String code = DataProcessing.generateLinkCode();
         jdbcTemplate.update("INSERT INTO public.\"LinkRequests\" (uid, code, end_timestamp) VALUES (?, ?, ?)",
-                uid, DataProcessing.generateLinkCode(), timestamp);
+                uid, code, timestamp);
+        return code;
     }
 
     public void deleteLinkRequest(String uid) {
         jdbcTemplate.update("DELETE FROM public.\"LinkRequests\" WHERE uid = ?", uid);
     }
 
-    public void tryToLinkCaretaker(String uid, String code) {
+    public int tryToLinkCaretaker(String uid, String code) {
         List<LinkRequest> list = jdbcTemplate.query("SELECT * FROM public.\"LinkRequests\" WHERE code = ?",
-                (resultSet, i) -> new LinkRequest(resultSet.getString("uid"), resultSet.getTimestamp("end_timestamp")), code);
+                (resultSet, i) -> new LinkRequest(resultSet.getString("uid"), resultSet.getString("code"), resultSet.getTimestamp("end_timestamp")), code);
 
-        if (list.size() != 1) return;
+        if (list.size() != 1) return 0;
         LinkRequest linkRequest = list.get(0);
 
         if (linkRequest.timestamp.after(new Date(System.currentTimeMillis()))) {
             jdbcTemplate.update("UPDATE public.\"CaredUsers\" SET caretaker_uid = ? WHERE uid = ?",
                     uid, linkRequest.uid);
+            return 1;
         }
 
         jdbcTemplate.update("DELETE FROM public.\"LinkRequests\" WHERE uid = ?", linkRequest.uid);
+        return 0;
     }
 }

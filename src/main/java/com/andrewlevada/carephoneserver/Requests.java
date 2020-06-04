@@ -106,10 +106,10 @@ public class Requests {
     // Link
 
     @RequestMapping(method = RequestMethod.PUT, path = "/link")
-    public void putLink(@RequestParam String userToken) {
+    public String putLink(@RequestParam String userToken) {
         String uid = Toolbox.getUidFromFirebaseAuthToken(userToken);
-        if (uid == null) return;
-        database.addLinkRequest(uid);
+        if (uid == null) return null;
+        return database.addLinkRequest(uid);
     }
 
     @RequestMapping(method = RequestMethod.DELETE, path = "/link")
@@ -120,9 +120,9 @@ public class Requests {
     }
 
     @RequestMapping(method = RequestMethod.POST, path = "/link")
-    public void postLink(@RequestParam String userToken, @RequestParam String code) {
+    public int postLink(@RequestParam String userToken, @RequestParam String code) {
         String uid = Toolbox.getUidFromFirebaseAuthToken(userToken);
-        if (uid == null) return;
-        database.tryToLinkCaretaker(uid, code);
+        if (uid == null) return 0;
+        return database.tryToLinkCaretaker(uid, code);
     }
 }
