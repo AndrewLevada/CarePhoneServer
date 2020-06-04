@@ -1,9 +1,6 @@
 package com.andrewlevada.carephoneserver;
 
-import com.andrewlevada.carephoneserver.logic.LogRecord;
-import com.andrewlevada.carephoneserver.logic.PhoneNumber;
-import com.andrewlevada.carephoneserver.logic.StatisticsPack;
-import com.google.firebase.auth.FirebaseAuth;
+import com.andrewlevada.carephoneserver.logic.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.web.bind.annotation.*;

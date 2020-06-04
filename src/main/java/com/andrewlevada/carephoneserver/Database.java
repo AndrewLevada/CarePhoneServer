@@ -63,7 +63,7 @@ public class Database {
                 mapper, uid);
 
         if (list.size() != 0) return list.get(0);
-        else return null;
+        else return false;
     }
 
     public void setWhitelistState(String uid, boolean state) {
