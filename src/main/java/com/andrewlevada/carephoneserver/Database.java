@@ -1,5 +1,6 @@
 package com.andrewlevada.carephoneserver;
 
+import com.andrewlevada.carephoneserver.logic.LinkRequest;
 import com.andrewlevada.carephoneserver.logic.LogRecord;
 import com.andrewlevada.carephoneserver.logic.PhoneNumber;
 import com.andrewlevada.carephoneserver.logic.StatisticsPack;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
@@ -89,15 +91,34 @@ public class Database {
     // Cared List
 
     public List<String> getCaredList(String uid) {
-        return jdbcTemplate.query("SELECT uid FROM public.\"CaredUsers\" WHERE caretaker_uid = ?", new uidMapper(), uid);
+        return jdbcTemplate.query("SELECT uid FROM public.\"CaredUsers\" WHERE caretaker_uid = ?",
+                (resultSet, i) -> resultSet.getString("uid"), uid);
     }
 
-    // Additional Mappers
+    // Linking
 
-    private static class uidMapper implements RowMapper<String> {
-        @Override
-        public String mapRow(ResultSet resultSet, int i) throws SQLException {
-            return resultSet.getString("uid");
+    public void addLinkRequest(String uid) {
+        Timestamp timestamp = new Timestamp(System.currentTimeMillis() + 1000 * 60 * 10);
+        jdbcTemplate.update("INSERT INTO public.\"LinkRequests\" (uid, code, end_timestamp) VALUES (?, ?, ?)",
+                uid, DataProcessing.generateLinkCode(), timestamp);
+    }
+
+    public void deleteLinkRequest(String uid) {
+        jdbcTemplate.update("DELETE FROM public.\"LinkRequests\" WHERE uid = ?", uid);
+    }
+
+    public void tryToLinkCaretaker(String uid, String code) {
+        List<LinkRequest> list = jdbcTemplate.query("SELECT * FROM public.\"LinkRequests\" WHERE code = ?",
+                (resultSet, i) -> new LinkRequest(resultSet.getString("uid"), resultSet.getTimestamp("end_timestamp")), code);
+
+        if (list.size() != 1) return;
+        LinkRequest linkRequest = list.get(0);
+
+        if (linkRequest.timestamp.after(new Date(System.currentTimeMillis()))) {
+            jdbcTemplate.update("UPDATE public.\"CaredUsers\" SET caretaker_uid = ? WHERE uid = ?",
+                    uid, linkRequest.uid);
         }
+
+        jdbcTemplate.update("DELETE FROM public.\"LinkRequests\" WHERE uid = ?", linkRequest.uid);
     }
 }

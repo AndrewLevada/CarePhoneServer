@@ -102,4 +102,27 @@ public class Requests {
         if (uid == null) return null;
         return database.getCaredList(uid);
     }
+
+    // Link
+
+    @RequestMapping(method = RequestMethod.PUT, path = "/link")
+    public void putLink(@RequestParam String userToken) {
+        String uid = Toolbox.getUidFromFirebaseAuthToken(userToken);
+        if (uid == null) return;
+        database.addLinkRequest(uid);
+    }
+
+    @RequestMapping(method = RequestMethod.DELETE, path = "/link")
+    public void deleteLink(@RequestParam String userToken) {
+        String uid = Toolbox.getUidFromFirebaseAuthToken(userToken);
+        if (uid == null) return;
+        database.deleteLinkRequest(uid);
+    }
+
+    @RequestMapping(method = RequestMethod.POST, path = "/link")
+    public void postLink(@RequestParam String userToken, @RequestParam String code) {
+        String uid = Toolbox.getUidFromFirebaseAuthToken(userToken);
+        if (uid == null) return;
+        database.tryToLinkCaretaker(uid, code);
+    }
 }
