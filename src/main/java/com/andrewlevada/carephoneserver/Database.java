@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.sql.ResultSet;
@@ -13,7 +14,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.*;
 
-@Component
+@Repository
 public class Database {
 	@Autowired
 	private JdbcTemplate jdbcTemplate;

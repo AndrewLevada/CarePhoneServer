@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="dataSourceStorageLocal">
+    <data-source name="d9rku71q2drhq2@ec2-46-137-100-204.eu-west-1.compute.amazonaws.com" uuid="1b7eba34-45ff-4bdc-8008-4e47b03dcb1d">
+      <database-info product="PostgreSQL" version="12.3 (Ubuntu 12.3-1.pgdg16.04+1)" jdbc-version="4.2" driver-name="PostgreSQL JDBC Driver" driver-version="42.2.5" dbms="POSTGRES" exact-version="12.3" exact-driver-version="42.2">
+        <identifier-quote-string>&quot;</identifier-quote-string>
+      </database-info>
+      <case-sensitivity plain-identifiers="lower" quoted-identifiers="exact" />
+      <secret-storage>master_key</secret-storage>
+      <user-name>pkejctvxprhtgl</user-name>
+      <schema-mapping>
+        <introspection-scope>
+          <node kind="database" qname="@">
+            <node kind="schema" qname="@" />
+          </node>
+        </introspection-scope>
+      </schema-mapping>
+    </data-source>
+  </component>
+</project>

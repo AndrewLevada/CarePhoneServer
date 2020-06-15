@@ -84,6 +84,8 @@ public class Requests {
         for (Long period: Config.statisticsPeriods)
             periodsData.add(database.getTalkHoursByPeriod(uid, period));
 
+        periodsData.add(555);
+
         return new StatisticsPack(periodsData, phonesData.first, phonesData.second);
     }
 
