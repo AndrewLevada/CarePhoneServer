@@ -1,6 +1,5 @@
 package com.andrewlevada.carephoneserver;
 
-import android.util.Pair;
 import com.andrewlevada.carephoneserver.logic.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
