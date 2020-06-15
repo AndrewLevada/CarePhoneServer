@@ -1,10 +1,12 @@
 package com.andrewlevada.carephoneserver;
 
+import android.util.Pair;
 import com.andrewlevada.carephoneserver.logic.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -75,7 +77,14 @@ public class Requests {
     public StatisticsPack getStatisticsPack(@RequestParam String userToken) {
         String uid = Toolbox.getUidFromFirebaseAuthToken(userToken);
         if (uid == null) return null;
-        return DataProcessing.makeStatisticsPackFromLog(database.getAllLogRecords(uid));
+
+        Pair<List<String>, List<Integer>> phonesData = database.getTopPhonesByHours(uid, Config.statisticsTopPhonesAmount);
+
+        List<Integer> periodsData = new ArrayList<>();
+        for (Long period: Config.statisticsPeriods)
+            periodsData.add(database.getTalkHoursByPeriod(uid, period));
+
+        return new StatisticsPack(periodsData, phonesData.first, phonesData.second);
     }
 
     // Log
