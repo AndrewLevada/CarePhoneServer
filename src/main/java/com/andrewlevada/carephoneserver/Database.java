@@ -85,7 +85,7 @@ public class Database {
 
 	public Pair<List<String>, List<Integer>> getTopPhonesByHours(String uid, int limit) {
 		List<LabeledNumber> list = jdbcTemplate.query("SELECT phone_number, COALESCE(SUM(seconds_duration), 0) AS seconds FROM public.\"LogRecords\" WHERE uid = ? GROUP BY phone_number LIMIT ?",
-			(resultSet, i) -> new LabeledNumber(resultSet.getString("phone_number"), resultSet.getInt("seconds")),
+			(resultSet, i) -> new LabeledNumber(resultSet.getString("phone_number"), resultSet.getInt("seconds") / 60),
 			uid, limit);
 
 		Pair<List<String>, List<Integer>> pair = new Pair<>(new ArrayList<>(), new ArrayList<>());
@@ -99,8 +99,16 @@ public class Database {
 
 	public Integer getTalkHoursByPeriod(String uid, long period) {
 		List<Integer> list = jdbcTemplate.query("SELECT COALESCE(SUM(seconds_duration), 0) AS seconds FROM public.\"LogRecords\" WHERE uid = ? AND start_timestamp > ?",
-			(resultSet, i) -> resultSet.getInt("seconds"),
+			(resultSet, i) -> resultSet.getInt("seconds") / 60,
 			uid, System.currentTimeMillis() - period);
+
+		if (list.size() != 1) return 0;
+		else return list.get(0);
+	}
+
+	public Integer getTalkHours(String uid) {
+		List<Integer> list = jdbcTemplate.query("SELECT COALESCE(SUM(seconds_duration), 0) AS seconds FROM public.\"LogRecords\" WHERE uid = ?",
+			(resultSet, i) -> resultSet.getInt("seconds") / 60, uid);
 
 		if (list.size() != 1) return 0;
 		else return list.get(0);

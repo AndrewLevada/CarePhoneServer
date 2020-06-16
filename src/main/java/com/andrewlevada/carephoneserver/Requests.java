@@ -81,9 +81,7 @@ public class Requests {
 
         List<Integer> periodsData = new ArrayList<>();
         for (Long period: Config.statisticsPeriods)
-            periodsData.add(database.getTalkHoursByPeriod(uid, period));
-
-        periodsData.add(555);
+            periodsData.add(period != null ? database.getTalkHoursByPeriod(uid, period) : database.getTalkHours(uid));
 
         return new StatisticsPack(periodsData, phonesData.first, phonesData.second);
     }
