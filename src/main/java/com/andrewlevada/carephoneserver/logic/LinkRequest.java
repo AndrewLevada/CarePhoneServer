@@ -1,15 +1,13 @@
 package com.andrewlevada.carephoneserver.logic;
 
-import java.sql.Timestamp;
-
 public class LinkRequest {
     public String uid;
     public String code;
-    public Timestamp timestamp;
+    public long endTime;
 
-    public LinkRequest(String uid, String code, Timestamp timestamp) {
+    public LinkRequest(String uid, String code, long endTime) {
         this.uid = uid;
         this.code = code;
-        this.timestamp = timestamp;
+        this.endTime = endTime;
     }
 }

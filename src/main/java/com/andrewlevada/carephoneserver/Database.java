@@ -76,16 +76,16 @@ public class Database {
 		return jdbcTemplate.query("SELECT * FROM public.\"LogRecords\" WHERE uid = ? LIMIT ? OFFSET ?", new LogRecord.Mapper(), uid, limit, offset);
 	}
 
-	public void addLogRecord(String uid, String phoneNumber, Date startTimestamp, int secondsDuration, int type) {
+	public void addLogRecord(String uid, String phoneNumber, long startTimestamp, int secondsDuration, int type) {
 		jdbcTemplate.update("INSERT INTO public.\"LogRecords\" (uid, phone_number, start_timestamp, seconds_duration, type) VALUES (?, ?, ?, ?, ?)",
-			uid, phoneNumber, new java.sql.Timestamp(startTimestamp.getTime()), secondsDuration, type);
+			uid, phoneNumber, startTimestamp, secondsDuration, type);
 	}
 
 	// Statistics
 
-	public Pair<List<String>, List<Integer>> getTopPhonesByHours(String uid, int limit) {
+	public Pair<List<String>, List<Integer>> getTopPhonesByMinutes(String uid, int limit) {
 		List<LabeledNumber> list = jdbcTemplate.query("SELECT phone_number, COALESCE(SUM(seconds_duration), 0) AS seconds FROM public.\"LogRecords\" WHERE uid = ? GROUP BY phone_number LIMIT ?",
-			(resultSet, i) -> new LabeledNumber(resultSet.getString("phone_number"), resultSet.getInt("seconds") / 3600),
+			(resultSet, i) -> new LabeledNumber(resultSet.getString("phone_number"), resultSet.getInt("seconds") / 60),
 			uid, limit);
 
 		Pair<List<String>, List<Integer>> pair = new Pair<>(new ArrayList<>(), new ArrayList<>());
@@ -97,18 +97,18 @@ public class Database {
 		return pair;
 	}
 
-	public Integer getTalkHoursByPeriod(String uid, long period) {
+	public Integer getTalkMinutesByPeriod(String uid, long period) {
 		List<Integer> list = jdbcTemplate.query("SELECT COALESCE(SUM(seconds_duration), 0) AS seconds FROM public.\"LogRecords\" WHERE uid = ? AND start_timestamp > ?",
-			(resultSet, i) -> resultSet.getInt("seconds") / 3600,
+			(resultSet, i) -> resultSet.getInt("seconds") / 60,
 			uid, System.currentTimeMillis() - period);
 
 		if (list.size() != 1) return 0;
 		else return list.get(0);
 	}
 
-	public Integer getTalkHours(String uid) {
+	public Integer getTalkMinutes(String uid) {
 		List<Integer> list = jdbcTemplate.query("SELECT COALESCE(SUM(seconds_duration), 0) AS seconds FROM public.\"LogRecords\" WHERE uid = ?",
-			(resultSet, i) -> resultSet.getInt("seconds") / 3600, uid);
+			(resultSet, i) -> resultSet.getInt("seconds") / 60, uid);
 
 		if (list.size() != 1) return 0;
 		else return list.get(0);
@@ -116,44 +116,48 @@ public class Database {
 
 	// Cared List
 
-	public List<String> getCaredList(String uid) {
+	public List<CaredUser> getCaredList(String uid) {
 		return jdbcTemplate.query("SELECT uid FROM public.\"CaredUsers\" WHERE caretaker_uid = ?",
-			(resultSet, i) -> resultSet.getString("uid"), uid);
+			new CaredUser.Mapper(), uid);
 	}
 
 	// Linking
 
 	public String addLinkRequest(String uid) {
 		List<LinkRequest> list = jdbcTemplate.query("SELECT * FROM public.\"LinkRequests\" WHERE uid = ?",
-			(resultSet, i) -> new LinkRequest(resultSet.getString("uid"), resultSet.getString("code"), resultSet.getTimestamp("end_timestamp")), uid);
+			(resultSet, i) -> new LinkRequest(resultSet.getString("uid"), resultSet.getString("code"), resultSet.getLong("end_timestamp")), uid);
 
 		if (list.size() != 0) {
-			if (list.get(0).timestamp.after(new Date(System.currentTimeMillis()))) return list.get(0).code;
+			if (list.get(0).endTime > System.currentTimeMillis()) return list.get(0).code;
 			else {
-				deleteLinkRequest(uid);
+				deleteLinkRequestByUid(uid);
 				return addLinkRequest(uid);
 			}
 		}
 
 		Timestamp timestamp = new Timestamp(System.currentTimeMillis() + 1000 * 60 * 10);
-		String code = DataProcessing.generateLinkCode();
+		String code = DataProcessing.generateLinkCode(this);
 		jdbcTemplate.update("INSERT INTO public.\"LinkRequests\" (uid, code, end_timestamp) VALUES (?, ?, ?)",
 			uid, code, timestamp);
 		return code;
 	}
 
-	public void deleteLinkRequest(String uid) {
+	public void deleteLinkRequestByCode(String code) {
+		jdbcTemplate.update("DELETE FROM public.\"LinkRequests\" WHERE code = ?", code);
+	}
+
+	public void deleteLinkRequestByUid(String uid) {
 		jdbcTemplate.update("DELETE FROM public.\"LinkRequests\" WHERE uid = ?", uid);
 	}
 
 	public int tryToLinkCaretaker(String uid, String code) {
 		List<LinkRequest> list = jdbcTemplate.query("SELECT * FROM public.\"LinkRequests\" WHERE code = ?",
-			(resultSet, i) -> new LinkRequest(resultSet.getString("uid"), resultSet.getString("code"), resultSet.getTimestamp("end_timestamp")), code);
+			(resultSet, i) -> new LinkRequest(resultSet.getString("uid"), resultSet.getString("code"), resultSet.getLong("end_timestamp")), code);
 
 		if (list.size() != 1) return 0;
 		LinkRequest linkRequest = list.get(0);
 
-		if (linkRequest.timestamp.after(new Date(System.currentTimeMillis()))) {
+		if (linkRequest.endTime > System.currentTimeMillis()) {
 			jdbcTemplate.update("UPDATE public.\"CaredUsers\" SET caretaker_uid = ? WHERE uid = ?",
 				uid, linkRequest.uid);
 			return 1;
@@ -161,5 +165,28 @@ public class Database {
 
 		jdbcTemplate.update("DELETE FROM public.\"LinkRequests\" WHERE uid = ?", linkRequest.uid);
 		return 0;
+	}
+
+	public boolean checkIfLinkCodeValid(String code) {
+		List<Long> list = jdbcTemplate.query("SELECT * FROM public.\"LinkRequests\" WHERE code = ?",
+			(resultSet, i) -> resultSet.getLong("end_timestamp"), code);
+
+		if (list.size() == 0) return true;
+		Long endTime = list.get(0);
+
+		if (endTime > System.currentTimeMillis()) return false;
+		else {
+			deleteLinkRequestByCode(code);
+			return true;
+		}
+	}
+
+	// Remote
+
+	public boolean checkRemote(String uid, String rUid) {
+		List<CaredUser> list = jdbcTemplate.query("SELECT * FROM public.\"CaredUsers\" WHERE uid = ? AND caretaker_uid = ?", new CaredUser.Mapper(),
+			rUid, uid);
+
+		return list.size() != 0;
 	}
 }
