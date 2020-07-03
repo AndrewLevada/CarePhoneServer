@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -54,6 +53,38 @@ public class Requests {
         database.deleteWhitelistRecord(uid, phone);
     }
 
+    @RequestMapping(method = RequestMethod.GET, path = "/whitelist/r")
+    public List<PhoneNumber> getWhitelistR(@RequestParam String userToken, @RequestParam String rUid) {
+        String uid = Toolbox.getUidFromFirebaseAuthToken(userToken);
+        if (uid == null) return null;
+        if (!database.checkRemote(uid, rUid)) return null;
+        return database.getWhitelist(rUid);
+    }
+
+    @RequestMapping(method = RequestMethod.PUT, path = "/whitelist/r")
+    public void putWhitelistR(@RequestParam String userToken, @RequestParam String rUid, @RequestParam String phone, @RequestParam String label) {
+        String uid = Toolbox.getUidFromFirebaseAuthToken(userToken);
+        if (uid == null) return;
+        if (!database.checkRemote(uid, rUid)) return;
+        database.addWhitelistRecord(rUid, new PhoneNumber(phone, label));
+    }
+
+    @RequestMapping(method = RequestMethod.POST, path = "/whitelist/r")
+    public void postWhitelistR(@RequestParam String userToken, @RequestParam String rUid, @RequestParam String prevPhone, @RequestParam String phone, @RequestParam String label) {
+        String uid = Toolbox.getUidFromFirebaseAuthToken(userToken);
+        if (uid == null) return;
+        if (!database.checkRemote(uid, rUid)) return;
+        database.editWhitelistRecord(rUid, prevPhone, new PhoneNumber(phone, label));
+    }
+
+    @RequestMapping(method = RequestMethod.DELETE, path = "/whitelist/r")
+    public void deleteWhitelistR(@RequestParam String userToken, @RequestParam String rUid, @RequestParam String phone) {
+        String uid = Toolbox.getUidFromFirebaseAuthToken(userToken);
+        if (uid == null) return;
+        if (!database.checkRemote(uid, rUid)) return;
+        database.deleteWhitelistRecord(rUid, phone);
+    }
+
     // Whitelist State
 
     @RequestMapping(method = RequestMethod.GET, path = "/whitelist/state")
@@ -70,20 +101,37 @@ public class Requests {
         database.setWhitelistState(uid, state);
     }
 
+    @RequestMapping(method = RequestMethod.GET, path = "/whitelist/state/r")
+    public Boolean getWhitelistStateR(@RequestParam String userToken, @RequestParam String rUid) {
+        String uid = Toolbox.getUidFromFirebaseAuthToken(userToken);
+        if (uid == null) return null;
+        if (!database.checkRemote(uid, rUid)) return null;
+        return database.getWhitelistState(rUid);
+    }
+
+    @RequestMapping(method = RequestMethod.POST, path = "/whitelist/state/r")
+    public void postWhitelistStateR(@RequestParam String userToken, @RequestParam String rUid, @RequestParam Boolean state) {
+        String uid = Toolbox.getUidFromFirebaseAuthToken(userToken);
+        if (uid == null) return;
+        if (!database.checkRemote(uid, rUid)) return;
+        database.setWhitelistState(rUid, state);
+    }
+
     // Statistics
 
     @RequestMapping(method = RequestMethod.GET, path = "/statistics")
     public StatisticsPack getStatisticsPack(@RequestParam String userToken) {
         String uid = Toolbox.getUidFromFirebaseAuthToken(userToken);
         if (uid == null) return null;
+        return DataProcessing.makeStatisticsPackFromLog(database.getAllLogRecords(uid));
+    }
 
-        Pair<List<String>, List<Integer>> phonesData = database.getTopPhonesByHours(uid, Config.statisticsTopPhonesAmount);
-
-        List<Integer> periodsData = new ArrayList<>();
-        for (Long period: Config.statisticsPeriods)
-            periodsData.add(period != null ? database.getTalkHoursByPeriod(uid, period) : database.getTalkHours(uid));
-
-        return new StatisticsPack(periodsData, phonesData.first, phonesData.second);
+    @RequestMapping(method = RequestMethod.GET, path = "/statistics/r")
+    public StatisticsPack getStatisticsPackR(@RequestParam String userToken, @RequestParam String rUid) {
+        String uid = Toolbox.getUidFromFirebaseAuthToken(userToken);
+        if (uid == null) return null;
+        if (!database.checkRemote(uid, rUid)) return null;
+        return DataProcessing.makeStatisticsPackFromLog(database.getAllLogRecords(rUid));
     }
 
     // Log
@@ -96,16 +144,24 @@ public class Requests {
     }
 
     @RequestMapping(method = RequestMethod.PUT, path = "/log")
-    public void putLog(@RequestParam String userToken, @RequestParam String phoneNumber, @RequestParam Date startTimestamp, @RequestParam int secondsDuration, @RequestParam int type) {
+    public void putLog(@RequestParam String userToken, @RequestParam String phoneNumber, @RequestParam long startTimestamp, @RequestParam int secondsDuration, @RequestParam int type) {
         String uid = Toolbox.getUidFromFirebaseAuthToken(userToken);
         if (uid == null) return;
         database.addLogRecord(uid, phoneNumber, startTimestamp, secondsDuration, type);
     }
 
+    @RequestMapping(method = RequestMethod.GET, path = "/log/r")
+    public List<LogRecord> getLogR(@RequestParam String userToken, @RequestParam String rUid, @RequestParam int limit, @RequestParam int offset) {
+        String uid = Toolbox.getUidFromFirebaseAuthToken(userToken);
+        if (uid == null) return null;
+        if (!database.checkRemote(uid, rUid)) return null;
+        return database.getLimitedLogRecords(rUid, limit, offset);
+    }
+
     // Cared List
 
     @RequestMapping(method = RequestMethod.GET, path = "/caredList")
-    public List<String> getCaredList(@RequestParam String userToken) {
+    public List<CaredUser> getCaredList(@RequestParam String userToken) {
         String uid = Toolbox.getUidFromFirebaseAuthToken(userToken);
         if (uid == null) return null;
         return database.getCaredList(uid);
