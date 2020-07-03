@@ -135,10 +135,10 @@ public class Database {
 			}
 		}
 
-		Timestamp timestamp = new Timestamp(System.currentTimeMillis() + 1000 * 60 * 10);
+		long endTime = System.currentTimeMillis() + 1000 * 60 * 10;
 		String code = DataProcessing.generateLinkCode(this);
 		jdbcTemplate.update("INSERT INTO public.\"LinkRequests\" (uid, code, end_timestamp) VALUES (?, ?, ?)",
-			uid, code, timestamp);
+			uid, code, endTime);
 		return code;
 	}
 
