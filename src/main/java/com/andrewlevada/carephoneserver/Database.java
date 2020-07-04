@@ -189,4 +189,11 @@ public class Database {
 
 		return list.size() != 0;
 	}
+
+	// Other
+
+	public void addBugReport(String uid, String subject, String message, String info) {
+		jdbcTemplate.update("INSERT INTO public.\"BugReports\" (uid, subject, message, info, time) VALUES (?, ?, ?, ?, ?)",
+			uid, subject, message, info, System.currentTimeMillis());
+	}
 }

@@ -190,4 +190,13 @@ public class Requests {
         if (uid == null) return 0;
         return database.tryToLinkCaretaker(uid, code);
     }
+
+    // Other
+
+    @RequestMapping(method = RequestMethod.PUT, path = "/bugreport")
+    public void putBugReport(@RequestParam String userToken, @RequestParam String subject, @RequestParam String message, @RequestParam String info) {
+        String uid = Toolbox.getUidFromFirebaseAuthToken(userToken);
+        if (uid == null) return;
+        database.addBugReport(uid, subject, message, info);
+    }
 }
