@@ -21,6 +21,13 @@ public class Requests {
         if (uid == null) return;
         if (!database.hasUser(uid)) database.addUser(uid);
     }
+
+    @RequestMapping(method = RequestMethod.POST, path = "/makePro")
+    public void makeUserPro(@RequestParam String userToken) {
+        String uid = Toolbox.getUidFromFirebaseAuthToken(userToken);
+        if (uid == null) return;
+        if (!database.hasUser(uid)) database.makeUserPro(uid);
+    }
     
     // Whitelist
 

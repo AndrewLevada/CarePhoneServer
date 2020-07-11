@@ -28,6 +28,10 @@ public class Database {
 		return list.size() == 1;
 	}
 
+	public void makeUserPro(String uid) {
+		jdbcTemplate.update("UPDATE public.\"CaredUsers\" SET is_pro = ? WHERE uid = ?", true, uid);
+	}
+
 	// Whitelist
 
 	public List<PhoneNumber> getWhitelist(String uid) {
