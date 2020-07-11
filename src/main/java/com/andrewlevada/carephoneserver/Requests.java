@@ -26,7 +26,7 @@ public class Requests {
     public void makeUserPro(@RequestParam String userToken) {
         String uid = Toolbox.getUidFromFirebaseAuthToken(userToken);
         if (uid == null) return;
-        if (!database.hasUser(uid)) database.makeUserPro(uid);
+        database.makeUserPro(uid);
     }
     
     // Whitelist
