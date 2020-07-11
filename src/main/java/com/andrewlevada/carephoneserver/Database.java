@@ -121,6 +121,11 @@ public class Database {
 			new CaredUser.Mapper(), uid);
 	}
 
+	public List<CaredUser2> getCaredList2(String uid) {
+		return jdbcTemplate.query("SELECT uid, is_pro FROM public.\"CaredUsers\" WHERE caretaker_uid = ?",
+			new CaredUser2.Mapper(), uid);
+	}
+
 	// Linking
 
 	public String addLinkRequest(String uid) {

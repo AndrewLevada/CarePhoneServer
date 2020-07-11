@@ -168,6 +168,13 @@ public class Requests {
         return database.getCaredList(uid);
     }
 
+    @RequestMapping(method = RequestMethod.GET, path = "/caredList/v2")
+    public List<CaredUser2> getCaredList2(@RequestParam String userToken) {
+        String uid = Toolbox.getUidFromFirebaseAuthToken(userToken);
+        if (uid == null) return null;
+        return database.getCaredList2(uid);
+    }
+
     // Link
 
     @RequestMapping(method = RequestMethod.PUT, path = "/link")
