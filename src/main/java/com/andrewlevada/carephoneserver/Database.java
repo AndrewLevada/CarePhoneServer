@@ -17,7 +17,7 @@ public class Database {
 	// Users
 
 	public void addUser(String uid) {
-		jdbcTemplate.update("INSERT INTO public.\"CaredUsers\" (uid, caretaker_uid, is_whitelist_active) VALUES (?, NULL, TRUE)",
+		jdbcTemplate.update("INSERT INTO public.\"CaredUsers\" (uid, caretaker_uid, is_whitelist_active, is_pro) VALUES (?, NULL, TRUE, FALSE)",
 			uid);
 	}
 
